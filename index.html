@@ -3,17 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bahnsinn! - Das DB Wartespiel</title>
+    <title>Bahnsinn!</title>
     <style>
-        /* --- DB Corporate Design Farben --- */
-        :root {
-            --db-rot: #f01414;
-            --db-grau-dunkel: #282d32;
-            --db-grau-hell: #f4f4f4;
-            --weiss: #ffffff;
-            --schwarz: #000000;
-        }
-
         /* --- Allgemeine Styles --- */
         body, html {
             margin: 0;
@@ -21,11 +12,8 @@
             width: 100%;
             height: 100%;
             font-family: Arial, sans-serif;
-            background-color: var(--db-grau-hell);
+            background-color: #f4f4f4;
             overflow: hidden; /* Verhindert Scrollbalken */
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
         .screen {
@@ -46,276 +34,185 @@
         }
 
         button {
-            background-color: var(--db-rot);
-            color: var(--weiss);
+            background-color: #f01414; /* DB Rot */
+            color: white;
             border: none;
             padding: 15px 30px;
             font-size: 1.2rem;
             font-weight: bold;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
             margin-top: 20px;
-            transition: background-color 0.2s, transform 0.1s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background-color 0.2s;
         }
 
         button:hover {
             background-color: #c01010;
         }
-        
-        button:active {
-            transform: translateY(1px);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
 
         /* --- Start Screen --- */
         #start-screen {
-            background-color: var(--weiss);
+            background-color: white;
         }
 
         #start-screen img {
-            max-width: 250px;
-            height: auto;
-            margin-bottom: 30px;
-        }
-
-        #start-screen h1 {
-            font-size: 3rem;
-            color: var(--db-rot);
-            margin: 0 0 10px 0;
+            max-width: 200px;
+            margin-bottom: 20px;
         }
 
         .footer {
             position: absolute;
-            bottom: 15px;
+            bottom: 10px;
             font-size: 0.8rem;
-            color: #777;
+            color: #666;
         }
 
-        /* --- GAME SCREEN (Das Herzstück der Positionierung) --- */
+        /* --- Game Screen --- */
         #game-screen {
-            background-color: #999; /* Falls das Bild lädt */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100vw;
-            height: 100vh;
-        }
-
-        /* Dieser Container behält IMMER das Seitenverhältnis des Hintergrundbildes bei.
-           Ich nehme an, das Bild 'Bahnsteig.png' ist im Standard 16:9 Format.
-           Falls nicht, ändere 'aspect-ratio: 16 / 9;' entsprechend (z.B. 4 / 3).
-        */
-        #game-viewfield {
-            position: relative;
-            width: 100%;
-            max-width: 100%;
-            height: auto;
-            aspect-ratio: 16 / 9; /* WICHTIG: Verhältnis des Bahnsteig.png anpassen! */
             background-image: url('Bahnsteig.png');
-            background-size: contain;
-            background-repeat: no-repeat;
+            background-size: cover;
             background-position: center;
-            overflow: hidden;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
-        }
-        
-        /* Fallback für Browser, die aspect-ratio nicht unterstützen */
-        @supports not (aspect-ratio: 16/9) {
-            #game-viewfield {
-                height: 100%;
-                width: calc(100vh * (16/9));
-            }
+            position: relative;
         }
 
-        /* --- REALE BAHN-UHR ÜBERLAGERUNG --- */
+        /* Der Waiting Dude */
+        #dude-container {
+            position: absolute;
+            /* HIER ANPASSEN: Position und Größe des Dudes auf dem Bahnsteig */
+            bottom: 15%; 
+            left: 30%;
+            height: 50%;
+        }
+
+        #dude-image {
+            height: 100%;
+            width: auto;
+        }
+
+        /* Die Bahnuhr */
         #clock-container {
             position: absolute;
-            background-color: var(--weiss);
+            /* HIER ANPASSEN: Position und Größe der Uhr auf dem Hintergrundbild */
+            top: 12%; 
+            right: 25%;
+            width: 150px;
+            height: 150px;
+            background-color: white;
             border-radius: 50%;
-            border: 2px solid #333; /* Ein dünner Rahmen für die Definition */
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
-            
-            /* --- HIER ANPASSEN: Exakte Position über der Uhr im Bild --- */
-            /* Nutze %-Werte relativ zum game-viewfield */
-            top: 15.5%;    /* Vertikale Position (von oben) */
-            right: 21.8%; /* Horizontale Position (von rechts) */
-            width: 7.5%;  /* Breite der Uhr relativ zur Gesamtbreite */
-            height: auto; 
-            aspect-ratio: 1 / 1; /* Immer kreisrund */
-            
-            z-index: 10;
+            border: 8px solid #222;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
         }
 
-        /* Ziffernblatt-Markierungen (nur Hauptachsen für Schlichtheit) */
+        /* Ziffernblatt-Markierungen (vereinfacht) */
         .clock-mark {
             position: absolute;
-            width: 5%;
-            height: 15%;
-            background: #333;
-            top: 2%;
+            width: 4px;
+            height: 10px;
+            background: #222;
+            top: 5px;
             left: 50%;
             transform: translateX(-50%);
-            transform-origin: 50% 333%; /* Magische Zahl für die Drehung um das Zentrum */
         }
-        .clock-mark.mh { height: 10%; top: 4%; } /* Stundenmarken */
 
         .hand {
             position: absolute;
             bottom: 50%;
             left: 50%;
             transform-origin: bottom center;
-            background-color: var(--schwarz);
+            background-color: black;
             border-radius: 4px;
-            z-index: 5;
         }
 
-        #hour-hand { width: 8%; height: 28%; margin-left: -4%; border-radius: 10px; }
-        #min-hand { width: 5%; height: 42%; margin-left: -2.5%; border-radius: 10px; }
+        #hour-hand { width: 6px; height: 35%; margin-left: -3px; }
+        #min-hand { width: 4px; height: 45%; margin-left: -2px; }
         #sec-hand { 
-            width: 3%; 
-            height: 48%; 
-            margin-left: -1.5%; 
-            background-color: var(--db-rot); 
-            border-radius: 0;
-            z-index: 6;
+            width: 2px; 
+            height: 50%; 
+            margin-left: -1px; 
+            background-color: #f01414; 
         }
 
         .clock-center {
             position: absolute;
             top: 50%; left: 50%;
-            width: 12%; height: 12%;
-            background-color: var(--schwarz);
+            width: 12px; height: 12px;
+            background-color: black;
             border-radius: 50%;
             transform: translate(-50%, -50%);
-            z-index: 10;
         }
 
-        /* --- WAITING DUDE --- */
-        #dude-container {
-            position: absolute;
-            
-            /* --- HIER ANPASSEN: Position des Dudes auf dem Bahnsteig --- */
-            bottom: 18%; /* Standlinie auf dem Boden */
-            left: 35%;   /* Horizontale Position */
-            
-            /* Der Container hat keine feste Höhe, die Bilder bestimmen sie */
-            height: 55%; /* Maximale Höhe des Dudes relativ zum Feld */
-            display: flex;
-            align-items: flex-end; /* Dudes stehen 'auf' der bottom-Linie */
-            z-index: 5;
-        }
-
-        #dude-image {
-            height: 100%; /* Füllt den Container in der Höhe */
-            width: auto;  /* Behält Seitenverhältnis des Dudes */
-            display: block;
-        }
-
-        /* UI-Overlay im Spiel (Ganz unten, außerhalb des Viewfields) */
+        /* UI-Overlay im Spiel */
         #game-ui {
             position: absolute;
-            bottom: 30px;
+            bottom: 20px;
             width: 100%;
             display: flex;
             justify-content: center;
-            z-index: 100;
         }
 
         #action-menu {
             display: none;
             position: absolute;
-            bottom: 100px;
-            background: rgba(255, 255, 255, 0.98);
+            bottom: 80px;
+            background: rgba(255, 255, 255, 0.95);
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             flex-direction: column;
-            gap: 12px;
-            border: 1px solid #ccc;
+            gap: 10px;
         }
 
         #action-menu button {
             margin: 0;
-            width: 200px;
         }
 
         /* --- End Screen --- */
         #end-screen {
-            background-color: var(--weiss);
-            padding: 40px;
+            background-color: white;
+            padding: 20px;
             box-sizing: border-box;
-            overflow-y: auto; /* Erlaubt Scrollen auf kleinen Screens */
         }
 
         #end-screen h1 {
-            color: var(--db-grau-dunkel);
-            font-size: 2.5rem;
-        }
-        
-        #end-screen del {
-            color: #999;
-            text-decoration-color: var(--db-rot);
+            color: #333;
         }
 
         .leaderboard-container {
-            margin-top: 30px;
+            margin-top: 20px;
             width: 100%;
-            max-width: 650px;
-            background: var(--db-grau-hell);
-            padding: 20px;
+            max-width: 500px;
+            background: #f9f9f9;
+            padding: 15px;
             border-radius: 8px;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
-        }
-        
-        .leaderboard-container h2 {
-            color: var(--db-rot);
-            margin-top: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-height: 40vh;
+            overflow-y: auto;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background-color: var(--weiss);
         }
 
         th, td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
             text-align: left;
         }
-        
-        th {
-            background-color: var(--db-grau-dunkel);
-            color: var(--weiss);
-        }
-
-        tr:last-child td { border-bottom: none; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
 
         #score-form {
-            margin-top: 25px;
-            margin-bottom: 25px;
+            margin-top: 20px;
             display: flex;
-            gap: 15px;
+            gap: 10px;
             justify-content: center;
             align-items: center;
-            background-color: #eee;
-            padding: 15px;
-            border-radius: 4px;
         }
 
         #player-name {
-            padding: 15px;
-            font-size: 1.1rem;
-            border: 2px solid #ccc;
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
             border-radius: 4px;
-            width: 250px;
-        }
-        
-        #player-name:focus {
-            border-color: var(--db-rot);
-            outline: none;
         }
     </style>
 </head>
@@ -331,51 +228,48 @@
 
     <div id="game-screen" class="screen">
         
-        <div id="game-viewfield">
-            
-            <div id="clock-container">
-                <div class="clock-mark" style="transform: translateX(-50%) rotate(0deg);"></div>
-                <div class="clock-mark" style="transform: translateX(-50%) rotate(90deg);"></div>
-                <div class="clock-mark" style="transform: translateX(-50%) rotate(180deg);"></div>
-                <div class="clock-mark" style="transform: translateX(-50%) rotate(270deg);"></div>
-                
-                <div id="hour-hand" class="hand"></div>
-                <div id="min-hand" class="hand"></div>
-                <div id="sec-hand" class="hand"></div>
-                <div class="clock-center"></div>
-            </div>
+        <div id="clock-container">
+            <div class="clock-mark" style="transform: translateX(-50%) rotate(0deg); transform-origin: 50% 75px;"></div>
+            <div class="clock-mark" style="transform: translateX(-50%) rotate(90deg); transform-origin: 50% 75px;"></div>
+            <div class="clock-mark" style="transform: translateX(-50%) rotate(180deg); transform-origin: 50% 75px;"></div>
+            <div class="clock-mark" style="transform: translateX(-50%) rotate(270deg); transform-origin: 50% 75px;"></div>
+            <div id="hour-hand" class="hand"></div>
+            <div id="min-hand" class="hand"></div>
+            <div id="sec-hand" class="hand"></div>
+            <div class="clock-center"></div>
+        </div>
 
-            <div id="dude-container">
-                <img id="dude-image" src="Waiting-Dude_1.png" alt="Wartender Reisender">
-            </div>
-            
-        </div> <div id="game-ui">
+        <div id="dude-container">
+            <img id="dude-image" src="Waiting-Dude_1.png" alt="Wartender Reisender">
+        </div>
+
+        <div id="game-ui">
             <button onclick="toggleActionMenu()">Aktion auswählen</button>
         </div>
 
         <div id="action-menu">
-            <button onclick="giveUp()" style="background-color: var(--db-rot);">Aufgeben</button>
-            <button onclick="continueWaiting()" style="background-color: var(--db-grau-dunkel);">Weiter Warten</button>
+            <button onclick="continueWaiting()" style="background-color: #555;">Warten</button>
+            <button onclick="giveUp()">Aufgeben</button>
         </div>
     </div>
 
     <div id="end-screen" class="screen">
         <h1>Zänk juh for <del>träwweling wis</del> Deutsche Bahn</h1>
-        <p>Du hast unglaubliche <strong id="final-time" style="font-size: 1.5rem; color: var(--db-rot);">0</strong> Sekunden Geduld bewiesen!</p>
+        <p>Du hast unglaubliche <strong id="final-time">0</strong> Sekunden auf deinen Zug gewartet!</p>
         
         <div id="score-form">
-            <input type="text" id="player-name" placeholder="Dein Name für die Nachwelt" maxlength="20">
+            <input type="text" id="player-name" placeholder="Dein Name" maxlength="20">
             <button onclick="saveScore()" style="margin: 0;">In Bestenliste eintragen</button>
         </div>
 
         <div class="leaderboard-container">
-            <h2>Die geduldigsten Fahrgäste (Top 10)</h2>
+            <h2>Die geduldigsten Fahrgäste</h2>
             <table>
                 <thead>
                     <tr>
                         <th>Platz</th>
                         <th>Name</th>
-                        <th>Wartezeit (Min:Sek)</th>
+                        <th>Wartezeit</th>
                         <th>Datum</th>
                     </tr>
                 </thead>
@@ -384,26 +278,14 @@
             </table>
         </div>
 
-        <button onclick="resetToStart()" style="background-color: var(--db-grau-dunkel); margin-top: 40px;">Zurück zum Start</button>
+        <button onclick="resetToStart()">Zurück zum Start</button>
     </div>
 
     <script>
-        // --- Konfiguration ---
-        // Liste aller verfügbaren Dudes für den Wechsel (OHNE Dude 1)
-        const AVAILABLE_DUDES = [
-            'Waiting-Dude_2.png',
-            'Waiting-Dude_3.png',
-            'Waiting-Dude_4.png',
-            'Waiting-Dude_5.png',
-            'Waiting-Dude_6.png',
-            'Waiting-Dude_7.png', // Neu hinzugefügt
-            'Waiting-Dude_8.png'  // Neu hinzugefügt
-        ];
-
         // --- Variablen ---
         let startTime;
         let gameTime = 0;
-        let currentDudeFile = 'Waiting-Dude_1.png';
+        let currentDudeIndex = 1;
         
         // Intervalle und Timeouts
         let clockInterval;
@@ -423,15 +305,13 @@
             const min = now.getMinutes();
             const hour = now.getHours();
 
-            // Berechnung der Winkel
-            const secDeg = sec * 6; // 360 / 60
-            const minDeg = (min * 6) + (sec * 0.1); // Minuten + sanfter Übergang durch Sekunden
-            const hourDeg = ((hour % 12) * 30) + (min * 0.5); // Stunden + Übergang durch Minuten
+            const secDeg = sec * 6;
+            const minDeg = min * 6 + sec * 0.1;
+            const hourDeg = (hour % 12) * 30 + min * 0.5;
 
-            // Drehung anwenden
-            document.getElementById('sec-hand').style.transform = `translateX(-50%) rotate(${secDeg}deg)`;
-            document.getElementById('min-hand').style.transform = `translateX(-50%) rotate(${minDeg}deg)`;
-            document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+            document.getElementById('sec-hand').style.transform = `rotate(${secDeg}deg)`;
+            document.getElementById('min-hand').style.transform = `rotate(${minDeg}deg)`;
+            document.getElementById('hour-hand').style.transform = `rotate(${hourDeg}deg)`;
         }
 
         // --- Spielsteuerung ---
@@ -443,58 +323,45 @@
             // UI zurücksetzen
             document.getElementById('action-menu').style.display = 'none';
             document.getElementById('dude-image').src = 'Waiting-Dude_1.png';
-            currentDudeFile = 'Waiting-Dude_1.png';
+            currentDudeIndex = 1;
             
             // Uhr starten
             updateClock();
-            clearInterval(clockInterval); // Sicherheithalber alte Intervalle löschen
             clockInterval = setInterval(updateClock, 1000);
 
             // Audio starten
-            // Hinweis: Moderne Browser blockieren Autoplay oft, wenn der User nicht interagiert hat.
-            // Da er auf "Starten" geklickt hat, sollte es hier funktionieren.
             gongAudio.currentTime = 0;
-            gongAudio.play().catch(e => console.log("Audio Autoplay blockiert:", e));
-            
+            gongAudio.play();
             jeopardyAudio.currentTime = 0;
-            jeopardyAudio.play().catch(e => console.log("Audio Autoplay blockiert:", e));
+            jeopardyAudio.play();
 
             // Zeitmessung starten
             startTime = Date.now();
 
             // Events planen
-            // Gong alle 10 Sekunden (startet nach 10 Sek)
-            clearInterval(gongInterval);
+            // Gong alle 10 Sekunden
             gongInterval = setInterval(() => {
                 gongAudio.currentTime = 0;
                 gongAudio.play();
             }, 10000);
 
-            // Dude Wechsel Logik
-            clearTimeout(dudeTimeout);
-            clearInterval(dudeInterval);
-
-            // 1. Der erste Wechsel passiert nach exakt 8 Sekunden
+            // Dude Wechsel nach 8 Sekunden (erste Änderung)
             dudeTimeout = setTimeout(() => {
                 swapDude();
-                // 2. DANACH wechseln die Dudes alle 2 Sekunden
+                // Danach alle 2 Sekunden
                 dudeInterval = setInterval(swapDude, 2000);
             }, 8000);
         }
 
         function swapDude() {
-            // Wähle einen zufälligen Dude aus der Liste (2-8)
-            let nextDudeFile;
+            // Wähle einen zufälligen Dude zwischen 2 und 6
+            let nextDude;
             do {
-                const randomIndex = Math.floor(Math.random() * AVAILABLE_DUDES.length);
-                nextDudeFile = AVAILABLE_DUDES[randomIndex];
-            } while (nextDudeFile === currentDudeFile && AVAILABLE_DUDES.length > 1); // Verhindert, dass zweimal derselbe hintereinander kommt
+                nextDude = Math.floor(Math.random() * 5) + 2; // Ergibt 2, 3, 4, 5, 6
+            } while (nextDude === currentDudeIndex); // Verhindert, dass zweimal derselbe hintereinander kommt
             
-            currentDudeFile = nextDudeFile;
-            // Bildquelle tauschen. Dank flex-direction: column-reverse im CSS 
-            // bleiben sie auf der gleichen Standlinie.
-            document.getElementById('dude-image').src = nextDudeFile;
-            console.log("Dude gewechselt zu:", nextDudeFile);
+            currentDudeIndex = nextDude;
+            document.getElementById('dude-image').src = `Waiting-Dude_${currentDudeIndex}.png`;
         }
 
         // --- UI Interaktionen ---
@@ -537,8 +404,8 @@
             document.getElementById('start-screen').classList.add('active');
         }
 
-        // --- Leaderboard Logik (localStorage) ---
-        function formatTimeHelper(seconds) {
+        // --- Leaderboard Logik ---
+        function formatTime(seconds) {
             const m = Math.floor(seconds / 60).toString().padStart(2, '0');
             const s = (seconds % 60).toString().padStart(2, '0');
             return `${m}:${s}`;
@@ -546,30 +413,23 @@
 
         function saveScore() {
             const nameInput = document.getElementById('player-name').value.trim();
-            const name = nameInput !== '' ? nameInput : 'Anonymer Fahrgast';
+            const name = nameInput !== '' ? nameInput : 'Anonymer Reisender';
             
-            // Aktuelles Datum formatieren
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('de-DE') + ' ' + now.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'});
+            const date = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-            const newEntry = { name: name, time: gameTime, date: dateStr };
+            const newEntry = { name: name, time: gameTime, date: date };
             
             // Aus LocalStorage laden
             let leaderboard = JSON.parse(localStorage.getItem('bahnsinn_leaderboard')) || [];
             
-            // Hinzufügen
+            // Hinzufügen und sortieren (höchste Zeit zuerst)
             leaderboard.push(newEntry);
-            
-            // Sortieren (höchste Zeit zuerst)
             leaderboard.sort((a, b) => b.time - a.time);
-            
-            // Kürzen auf Top 10
-            leaderboard = leaderboard.slice(0, 10);
             
             // Wieder speichern
             localStorage.setItem('bahnsinn_leaderboard', JSON.stringify(leaderboard));
             
-            // Formular ausblenden
+            // Formular ausblenden, damit man nicht mehrmals klickt
             document.getElementById('score-form').style.display = 'none';
             
             updateLeaderboardUI();
@@ -581,37 +441,20 @@
             tbody.innerHTML = '';
 
             if (leaderboard.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Noch keine Einträge. Sei der Erste!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Noch keine Einträge vorhanden.</td></tr>';
                 return;
             }
 
             leaderboard.forEach((entry, index) => {
                 const tr = document.createElement('tr');
-                // Hebe den gerade erreichten Score eventuell hervor (optional)
-                if(entry.time === gameTime && entry.name !== 'Anonymer Fahrgast' && index < 10) {
-                    tr.style.fontWeight = 'bold';
-                    tr.style.color = 'var(--db-rot)';
-                }
-
                 tr.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${escapeHtml(entry.name)}</td>
-                    <td>${formatTimeHelper(entry.time)}</td>
+                    <td>${entry.name}</td>
+                    <td>${formatTime(entry.time)}</td>
                     <td>${entry.date}</td>
                 `;
                 tbody.appendChild(tr);
             });
-        }
-        
-        // Einfacher Schutz gegen HTML-Injection im Namensfeld
-        function escapeHtml(text) {
-            if (!text) return text;
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
         }
     </script>
 </body>
