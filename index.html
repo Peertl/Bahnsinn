@@ -343,13 +343,13 @@
             gongInterval = setInterval(() => {
                 gongAudio.currentTime = 0;
                 gongAudio.play();
-            }, 10000);
+            }, 18000);
 
             // Dude Wechsel nach 8 Sekunden (erste Änderung)
             dudeTimeout = setTimeout(() => {
                 swapDude();
-                // Danach alle 6 Sekunden
-                dudeInterval = setInterval(swapDude, 6000);
+                // Danach alle 5 Sekunden
+                dudeInterval = setInterval(swapDude, 5000);
             }, 8000);
         }
 
