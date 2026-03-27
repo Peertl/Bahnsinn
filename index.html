@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bahnsinn!</title>
+    <style>
+        /* --- Allgemeine Styles --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            overflow: hidden; /* Verhindert Scrollbalken */
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .active {
+            display: flex;
+        }
+
+        button {
+            background-color: #f01414; /* DB Rot */
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #c01010;
+        }
+
+        /* --- Start Screen --- */
+        #start-screen {
+            background-color: white;
+        }
+
+        #start-screen img {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 10px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        /* --- Game Screen --- */
+        #game-screen {
+            background-image: url('Bahnsteig.png');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        /* Der Waiting Dude */
+        #dude-container {
+            position: absolute;
+            /* HIER ANPASSEN: Position und Größe des Dudes auf dem Bahnsteig */
+            bottom: 15%; 
+            left: 30%;
+            height: 50%;
+        }
+
+        #dude-image {
+            height: 100%;
+            width: auto;
+        }
+
+        /* Die Bahnuhr */
+        #clock-container {
+            position: absolute;
+            /* HIER ANPASSEN: Position und Größe der Uhr auf dem Hintergrundbild */
+            top: 12%; 
+            right: 25%;
+            width: 150px;
+            height: 150px;
+            background-color: white;
+            border-radius: 50%;
+            border: 8px solid #222;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        /* Ziffernblatt-Markierungen (vereinfacht) */
+        .clock-mark {
+            position: absolute;
+            width: 4px;
+            height: 10px;
+            background: #222;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            background-color: black;
+            border-radius: 4px;
+        }
+
+        #hour-hand { width: 6px; height: 35%; margin-left: -3px; }
+        #min-hand { width: 4px; height: 45%; margin-left: -2px; }
+        #sec-hand { 
+            width: 2px; 
+            height: 50%; 
+            margin-left: -1px; 
+            background-color: #f01414; 
+        }
+
+        .clock-center {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 12px; height: 12px;
+            background-color: black;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* UI-Overlay im Spiel */
+        #game-ui {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        #action-menu {
+            display: none;
+            position: absolute;
+            bottom: 80px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #action-menu button {
+            margin: 0;
+        }
+
+        /* --- End Screen --- */
+        #end-screen {
+            background-color: white;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #end-screen h1 {
+            color: #333;
+        }
+
+        .leaderboard-container {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 500px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        #score-form {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #player-name {
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen" class="screen active">
+        <img src="Deutsche_Bahn_Logo.png" alt="DB Logo">
+        <h1>Bahnsinn!</h1>
+        <p>Starte deine spannende Erfahrung mit der Deutschen Bahn</p>
+        <button onclick="startGame()">Starten</button>
+        <div class="footer">entwickelt von Peertl & Gemini</div>
+    </div>
+
+    <div id="game-screen" class="screen">
+        
+        <div id="clock-container">
+            <div class="clock-mark" style="transform: translateX(-50%) rotate(0deg); transform-origin: 50% 75px;"></div>
+            <div class="clock-mark" style="transform: translateX(-50%) rotate(90deg); transform-origin: 50% 75px;"></div>
+            <div class="clock-mark" style="transform: translateX(-50%) rotate(180deg); transform-origin: 50% 75px;"></div>
+            <div class="clock-mark" style="transform: translateX(-50%) rotate(270deg); transform-origin: 50% 75px;"></div>
+            <div id="hour-hand" class="hand"></div>
+            <div id="min-hand" class="hand"></div>
+            <div id="sec-hand" class="hand"></div>
+            <div class="clock-center"></div>
+        </div>
+
+        <div id="dude-container">
+            <img id="dude-image" src="Waiting-Dude_1.png" alt="Wartender Reisender">
+        </div>
+
+        <div id="game-ui">
+            <button onclick="toggleActionMenu()">Aktion auswählen</button>
+        </div>
+
+        <div id="action-menu">
+            <button onclick="continueWaiting()" style="background-color: #555;">Warten</button>
+            <button onclick="giveUp()">Aufgeben</button>
+        </div>
+    </div>
+
+    <div id="end-screen" class="screen">
+        <h1>Zänk juh for <del>träwweling wis</del> Deutsche Bahn</h1>
+        <p>Du hast unglaubliche <strong id="final-time">0</strong> Sekunden auf deinen Zug gewartet!</p>
+        
+        <div id="score-form">
+            <input type="text" id="player-name" placeholder="Dein Name" maxlength="20">
+            <button onclick="saveScore()" style="margin: 0;">In Bestenliste eintragen</button>
+        </div>
+
+        <div class="leaderboard-container">
+            <h2>Die geduldigsten Fahrgäste</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Platz</th>
+                        <th>Name</th>
+                        <th>Wartezeit</th>
+                        <th>Datum</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    </tbody>
+            </table>
+        </div>
+
+        <button onclick="resetToStart()">Zurück zum Start</button>
+    </div>
+
+    <script>
+        // --- Variablen ---
+        let startTime;
+        let gameTime = 0;
+        let currentDudeIndex = 1;
+        
+        // Intervalle und Timeouts
+        let clockInterval;
+        let gongInterval;
+        let dudeTimeout;
+        let dudeInterval;
+        
+        // Audio Objekte
+        const gongAudio = new Audio('Bahn_Gong.mp3');
+        const jeopardyAudio = new Audio('Jeopardy_Theme.mp3');
+        jeopardyAudio.loop = true;
+
+        // --- Uhr Logik ---
+        function updateClock() {
+            const now = new Date();
+            const sec = now.getSeconds();
+            const min = now.getMinutes();
+            const hour = now.getHours();
+
+            const secDeg = sec * 6;
+            const minDeg = min * 6 + sec * 0.1;
+            const hourDeg = (hour % 12) * 30 + min * 0.5;
+
+            document.getElementById('sec-hand').style.transform = `rotate(${secDeg}deg)`;
+            document.getElementById('min-hand').style.transform = `rotate(${minDeg}deg)`;
+            document.getElementById('hour-hand').style.transform = `rotate(${hourDeg}deg)`;
+        }
+
+        // --- Spielsteuerung ---
+        function startGame() {
+            // Screens wechseln
+            document.getElementById('start-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            
+            // UI zurücksetzen
+            document.getElementById('action-menu').style.display = 'none';
+            document.getElementById('dude-image').src = 'Waiting-Dude_1.png';
+            currentDudeIndex = 1;
+            
+            // Uhr starten
+            updateClock();
+            clockInterval = setInterval(updateClock, 1000);
+
+            // Audio starten
+            gongAudio.currentTime = 0;
+            gongAudio.play();
+            jeopardyAudio.currentTime = 0;
+            jeopardyAudio.play();
+
+            // Zeitmessung starten
+            startTime = Date.now();
+
+            // Events planen
+            // Gong alle 10 Sekunden
+            gongInterval = setInterval(() => {
+                gongAudio.currentTime = 0;
+                gongAudio.play();
+            }, 10000);
+
+            // Dude Wechsel nach 8 Sekunden (erste Änderung)
+            dudeTimeout = setTimeout(() => {
+                swapDude();
+                // Danach alle 2 Sekunden
+                dudeInterval = setInterval(swapDude, 2000);
+            }, 8000);
+        }
+
+        function swapDude() {
+            // Wähle einen zufälligen Dude zwischen 2 und 6
+            let nextDude;
+            do {
+                nextDude = Math.floor(Math.random() * 5) + 2; // Ergibt 2, 3, 4, 5, 6
+            } while (nextDude === currentDudeIndex); // Verhindert, dass zweimal derselbe hintereinander kommt
+            
+            currentDudeIndex = nextDude;
+            document.getElementById('dude-image').src = `Waiting-Dude_${currentDudeIndex}.png`;
+        }
+
+        // --- UI Interaktionen ---
+        function toggleActionMenu() {
+            const menu = document.getElementById('action-menu');
+            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function continueWaiting() {
+            document.getElementById('action-menu').style.display = 'none';
+        }
+
+        function giveUp() {
+            // Spiel stoppen
+            clearInterval(clockInterval);
+            clearInterval(gongInterval);
+            clearInterval(dudeInterval);
+            clearTimeout(dudeTimeout);
+            
+            jeopardyAudio.pause();
+            gongAudio.pause();
+
+            // Zeit berechnen
+            const endTime = Date.now();
+            gameTime = Math.floor((endTime - startTime) / 1000);
+            
+            // Screens wechseln
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('end-screen').classList.add('active');
+            
+            document.getElementById('final-time').innerText = gameTime;
+            document.getElementById('score-form').style.display = 'flex'; // Formular wieder anzeigen
+            document.getElementById('player-name').value = ''; // Input leeren
+            
+            updateLeaderboardUI();
+        }
+
+        function resetToStart() {
+            document.getElementById('end-screen').classList.remove('active');
+            document.getElementById('start-screen').classList.add('active');
+        }
+
+        // --- Leaderboard Logik ---
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function saveScore() {
+            const nameInput = document.getElementById('player-name').value.trim();
+            const name = nameInput !== '' ? nameInput : 'Anonymer Reisender';
+            
+            const date = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+            const newEntry = { name: name, time: gameTime, date: date };
+            
+            // Aus LocalStorage laden
+            let leaderboard = JSON.parse(localStorage.getItem('bahnsinn_leaderboard')) || [];
+            
+            // Hinzufügen und sortieren (höchste Zeit zuerst)
+            leaderboard.push(newEntry);
+            leaderboard.sort((a, b) => b.time - a.time);
+            
+            // Wieder speichern
+            localStorage.setItem('bahnsinn_leaderboard', JSON.stringify(leaderboard));
+            
+            // Formular ausblenden, damit man nicht mehrmals klickt
+            document.getElementById('score-form').style.display = 'none';
+            
+            updateLeaderboardUI();
+        }
+
+        function updateLeaderboardUI() {
+            const leaderboard = JSON.parse(localStorage.getItem('bahnsinn_leaderboard')) || [];
+            const tbody = document.getElementById('leaderboard-body');
+            tbody.innerHTML = '';
+
+            if (leaderboard.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Noch keine Einträge vorhanden.</td></tr>';
+                return;
+            }
+
+            leaderboard.forEach((entry, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${entry.name}</td>
+                    <td>${formatTime(entry.time)}</td>
+                    <td>${entry.date}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>
