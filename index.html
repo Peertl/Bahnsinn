@@ -348,16 +348,16 @@
             // Dude Wechsel nach 8 Sekunden (erste Änderung)
             dudeTimeout = setTimeout(() => {
                 swapDude();
-                // Danach alle 2 Sekunden
-                dudeInterval = setInterval(swapDude, 2000);
+                // Danach alle 6 Sekunden
+                dudeInterval = setInterval(swapDude, 6000);
             }, 8000);
         }
 
         function swapDude() {
-            // Wähle einen zufälligen Dude zwischen 2 und 6
+            // Wähle einen zufälligen Dude zwischen 2 und 8
             let nextDude;
             do {
-                nextDude = Math.floor(Math.random() * 5) + 2; // Ergibt 2, 3, 4, 5, 6
+                nextDude = Math.floor(Math.random() * 5) + 2; // Ergibt 2, 3, 4, 5, 6, 7, 8
             } while (nextDude === currentDudeIndex); // Verhindert, dass zweimal derselbe hintereinander kommt
             
             currentDudeIndex = nextDude;
