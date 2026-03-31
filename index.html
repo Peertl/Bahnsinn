@@ -50,6 +50,28 @@
             background-color: #c01010;
         }
 
+        /* --- Loading Screen --- */
+        #loading-screen {
+            background-color: white;
+        }
+        
+        #progress-container {
+            width: 50%;
+            max-width: 400px;
+            height: 20px;
+            background-color: #ddd;
+            border-radius: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #f01414;
+            transition: width 0.2s ease-out;
+        }
+
         /* --- Start Screen --- */
         #start-screen {
             background-color: white;
@@ -78,9 +100,8 @@
         /* Der Waiting Dude */
         #dude-container {
             position: absolute;
-            /* HIER ANGEPASST: Von 30% auf 15% geändert, um ihn nach links zu schieben */
             bottom: 15%; 
-            left: 15%;
+            left: 15%; /* Weiter nach links geschoben */
             height: 50%;
         }
 
@@ -93,7 +114,7 @@
         #clock-container {
             position: absolute;
             top: 8%; 
-            right: 25%;
+            right: 30%;
             width: 150px;
             height: 150px;
             background-color: white;
@@ -217,7 +238,15 @@
 </head>
 <body>
 
-    <div id="start-screen" class="screen active">
+    <div id="loading-screen" class="screen active">
+        <h1>Warte...</h1>
+        <p>Gleich geht's los!</p>
+        <div id="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+    </div>
+
+    <div id="start-screen" class="screen">
         <img src="Deutsche_Bahn_Logo.png" alt="DB Logo">
         <h1>Bahnsinn!</h1>
         <p>Starte deine aufregende Erfahrung mit der Deutschen Bahn</p>
@@ -281,6 +310,60 @@
     </div>
 
     <script>
+        // --- Preloader Logik ---
+        const assetsToLoad = [
+            'Deutsche_Bahn_Logo.png',
+            'Bahnsteig.png',
+            'Waiting-Dude_1.png',
+            'Waiting-Dude_2.png',
+            'Waiting-Dude_3.png',
+            'Waiting-Dude_5.png',
+            'Waiting-Dude_7.png',
+            'Waiting-Dude_8.png',
+            'Bahn_Gong.mp3',
+            'Jeopardy_Theme.mp3'
+        ];
+        
+        let loadedAssets = 0;
+
+        // Startet das Laden, sobald die Seite grundsätzlich da ist
+        window.onload = () => {
+            preloadAssets();
+        };
+
+        function preloadAssets() {
+            const totalAssets = assetsToLoad.length;
+            
+            assetsToLoad.forEach(asset => {
+                if (asset.endsWith('.mp3')) {
+                    const audio = new Audio();
+                    audio.oncanplaythrough = assetLoaded; // Wenn Audio bereit ist
+                    audio.onerror = assetLoaded;          // Bei Fehler trotzdem weitermachen
+                    audio.src = asset;
+                } else {
+                    const img = new Image();
+                    img.onload = assetLoaded;             // Wenn Bild bereit ist
+                    img.onerror = assetLoaded;            // Bei Fehler trotzdem weitermachen
+                    img.src = asset;
+                }
+            });
+
+            function assetLoaded() {
+                loadedAssets++;
+                const progress = (loadedAssets / totalAssets) * 100;
+                document.getElementById('progress-bar').style.width = progress + '%';
+
+                // Wenn alles geladen ist, kurzen Moment warten für die Animation, dann weiter
+                if (loadedAssets === totalAssets) {
+                    setTimeout(() => {
+                        document.getElementById('loading-screen').classList.remove('active');
+                        document.getElementById('start-screen').classList.add('active');
+                    }, 500);
+                }
+            }
+        }
+
+
         // --- Variablen ---
         let startTime;
         let gameTime = 0;
