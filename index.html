@@ -22,7 +22,7 @@
             height: 100%;
             font-family: Arial, sans-serif;
             background-color: var(--db-grau-hell);
-            overflow: hidden;
+            overflow: hidden; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -39,6 +39,7 @@
             position: absolute;
             top: 0;
             left: 0;
+            background-color: var(--weiss); /* Standardhintergrund für Screens */
         }
 
         .active {
@@ -59,28 +60,38 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        button:hover:not(:disabled) {
+        button:hover {
             background-color: #c01010;
         }
         
-        button:active:not(:disabled) {
+        button:active {
             transform: translateY(1px);
             box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
 
-        /* Style für deaktivierten Button während des Ladens */
-        button:disabled {
-            background-color: #cccccc;
-            color: #666666;
-            cursor: not-allowed;
-            box-shadow: none;
+        /* --- Loading Screen --- */
+        #loading-screen h2 {
+            color: var(--db-grau-dunkel);
+            margin-bottom: 20px;
+        }
+
+        .progress-container {
+            width: 300px;
+            height: 20px;
+            background-color: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: var(--db-rot);
+            transition: width 0.3s ease;
         }
 
         /* --- Start Screen --- */
-        #start-screen {
-            background-color: var(--weiss);
-        }
-
         #start-screen img {
             max-width: 250px;
             height: auto;
@@ -102,7 +113,7 @@
 
         /* --- GAME SCREEN --- */
         #game-screen {
-            background-color: #999;
+            background-color: #999; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -115,7 +126,7 @@
             width: 100%;
             max-width: 100%;
             height: auto;
-            aspect-ratio: 16 / 9;
+            aspect-ratio: 16 / 9; 
             background-image: url('Bahnsteig.png');
             background-size: contain;
             background-repeat: no-repeat;
@@ -139,13 +150,12 @@
             border: 2px solid #333;
             box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
             
-            /* --- HIER ANPASSEN: Etwas höher gesetzt (vorher 15.5%) --- */
+            /* --- Uhr etwas höher gesetzt (von 15.5% auf 12%) --- */
             top: 12%;    
             right: 21.8%; 
             width: 7.5%;  
             height: auto; 
             aspect-ratio: 1 / 1; 
-            
             z-index: 10;
         }
 
@@ -157,7 +167,7 @@
             top: 2%;
             left: 50%;
             transform: translateX(-50%);
-            transform-origin: 50% 333%;
+            transform-origin: 50% 333%; 
         }
         .clock-mark.mh { height: 10%; top: 4%; }
 
@@ -209,6 +219,7 @@
             display: block;
         }
 
+        /* --- UI Overlay --- */
         #game-ui {
             position: absolute;
             bottom: 30px;
@@ -238,10 +249,9 @@
 
         /* --- End Screen --- */
         #end-screen {
-            background-color: var(--weiss);
             padding: 40px;
             box-sizing: border-box;
-            overflow-y: auto;
+            overflow-y: auto; 
         }
 
         #end-screen h1 {
@@ -290,4 +300,357 @@
         tr:nth-child(even) { background-color: #f9f9f9; }
 
         #score-form {
-            margin
+            margin-top: 25px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            background-color: #eee;
+            padding: 15px;
+            border-radius: 4px;
+        }
+
+        #player-name {
+            padding: 15px;
+            font-size: 1.1rem;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            width: 250px;
+        }
+        
+        #player-name:focus {
+            border-color: var(--db-rot);
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading-screen" class="screen active">
+        <h2>Bitte warten...</h2>
+        <div class="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+    </div>
+
+    <div id="start-screen" class="screen">
+        <img src="Deutsche_Bahn_Logo.png" alt="DB Logo">
+        <h1>Bahnsinn!</h1>
+        <p>Starte deine aufregende Erfahrung mit der Deutschen Bahn.</p>
+        <button onclick="startGame()">Starten</button>
+        <div class="footer">entwickelt von Peertl & Gemini</div>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div id="game-viewfield">
+            <div id="clock-container">
+                <div class="clock-mark" style="transform: translateX(-50%) rotate(0deg);"></div>
+                <div class="clock-mark" style="transform: translateX(-50%) rotate(90deg);"></div>
+                <div class="clock-mark" style="transform: translateX(-50%) rotate(180deg);"></div>
+                <div class="clock-mark" style="transform: translateX(-50%) rotate(270deg);"></div>
+                <div id="hour-hand" class="hand"></div>
+                <div id="min-hand" class="hand"></div>
+                <div id="sec-hand" class="hand"></div>
+                <div class="clock-center"></div>
+            </div>
+
+            <div id="dude-container">
+                <img id="dude-image" src="Waiting-Dude_1.png" alt="Wartender Reisender">
+            </div>
+        </div> 
+
+        <div id="game-ui">
+            <button onclick="toggleActionMenu()">Aktion auswählen</button>
+        </div>
+
+        <div id="action-menu">
+            <button onclick="giveUp()" style="background-color: var(--db-rot);">Aufgeben</button>
+            <button onclick="continueWaiting()" style="background-color: var(--db-grau-dunkel);">Weiter Warten</button>
+        </div>
+    </div>
+
+    <div id="end-screen" class="screen">
+        <h1>Zänk juh for <del>träwweling wis</del> Deutsche Bahn</h1>
+        <p>Du hast unglaubliche <strong id="final-time" style="font-size: 1.5rem; color: var(--db-rot);">0</strong> Sekunden Geduld bewiesen!</p>
+        
+        <div id="score-form">
+            <input type="text" id="player-name" placeholder="Dein Name für die Nachwelt" maxlength="20">
+            <button onclick="saveScore()" style="margin: 0;">In Bestenliste eintragen</button>
+        </div>
+
+        <div class="leaderboard-container">
+            <h2>Die geduldigsten Fahrgäste (Top 10)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Platz</th>
+                        <th>Name</th>
+                        <th>Wartezeit (Min:Sek)</th>
+                        <th>Datum</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                </tbody>
+            </table>
+        </div>
+
+        <button onclick="resetToStart()" style="background-color: var(--db-grau-dunkel); margin-top: 40px;">Zurück zum Start</button>
+    </div>
+
+    <script>
+        // --- Preloader Logik ---
+        const ASSETS_TO_LOAD = [
+            'Bahnsteig.png',
+            'Deutsche_Bahn_Logo.png',
+            'Waiting-Dude_1.png',
+            'Waiting-Dude_2.png',
+            'Waiting-Dude_3.png',
+            'Waiting-Dude_4.png',
+            'Waiting-Dude_5.png',
+            'Waiting-Dude_6.png',
+            'Waiting-Dude_7.png',
+            'Waiting-Dude_8.png',
+            'Bahn_Gong.mp3',
+            'Jeopardy_Theme.mp3'
+        ];
+
+        let loadedAssetsCount = 0;
+        
+        // Audio Objekte global definieren, damit sie später genutzt werden können
+        const gongAudio = new Audio();
+        const jeopardyAudio = new Audio();
+        jeopardyAudio.loop = true;
+
+        window.onload = () => {
+            const progressBar = document.getElementById('progress-bar');
+            
+            if (ASSETS_TO_LOAD.length === 0) {
+                showStartScreen();
+                return;
+            }
+
+            ASSETS_TO_LOAD.forEach(src => {
+                if (src.endsWith('.mp3')) {
+                    const audio = src === 'Bahn_Gong.mp3' ? gongAudio : jeopardyAudio;
+                    
+                    // Event-Listener für das erfolgreiche Laden von Audio-Metadaten/Daten
+                    audio.addEventListener('canplaythrough', assetLoaded, { once: true });
+                    audio.addEventListener('error', assetLoaded, { once: true }); // Fallback bei Fehler
+                    
+                    audio.src = src;
+                    audio.load();
+                } else {
+                    const img = new Image();
+                    img.onload = assetLoaded;
+                    img.onerror = assetLoaded; // Fallback bei Fehler
+                    img.src = src;
+                }
+            });
+
+            function assetLoaded() {
+                loadedAssetsCount++;
+                const percentage = (loadedAssetsCount / ASSETS_TO_LOAD.length) * 100;
+                progressBar.style.width = percentage + '%';
+
+                if (loadedAssetsCount === ASSETS_TO_LOAD.length) {
+                    // Kurze Verzögerung, damit der 100% Balken kurz sichtbar ist
+                    setTimeout(showStartScreen, 400);
+                }
+            }
+        };
+
+        function showStartScreen() {
+            document.getElementById('loading-screen').classList.remove('active');
+            document.getElementById('start-screen').classList.add('active');
+        }
+
+        // --- Konfiguration ---
+        const AVAILABLE_DUDES = [
+            'Waiting-Dude_2.png',
+            'Waiting-Dude_3.png',
+            'Waiting-Dude_4.png',
+            'Waiting-Dude_5.png',
+            'Waiting-Dude_6.png',
+            'Waiting-Dude_7.png',
+            'Waiting-Dude_8.png'
+        ];
+
+        // --- Variablen ---
+        let startTime;
+        let gameTime = 0;
+        let currentDudeFile = 'Waiting-Dude_1.png';
+        
+        let clockInterval;
+        let gongInterval;
+        let dudeTimeout;
+        let dudeInterval;
+
+        // --- Uhr Logik ---
+        function updateClock() {
+            const now = new Date();
+            const sec = now.getSeconds();
+            const min = now.getMinutes();
+            const hour = now.getHours();
+
+            const secDeg = sec * 6; 
+            const minDeg = (min * 6) + (sec * 0.1); 
+            const hourDeg = ((hour % 12) * 30) + (min * 0.5); 
+
+            document.getElementById('sec-hand').style.transform = `translateX(-50%) rotate(${secDeg}deg)`;
+            document.getElementById('min-hand').style.transform = `translateX(-50%) rotate(${minDeg}deg)`;
+            document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+        }
+
+        // --- Spielsteuerung ---
+        function startGame() {
+            document.getElementById('start-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            
+            document.getElementById('action-menu').style.display = 'none';
+            document.getElementById('dude-image').src = 'Waiting-Dude_1.png';
+            currentDudeFile = 'Waiting-Dude_1.png';
+            
+            updateClock();
+            clearInterval(clockInterval); 
+            clockInterval = setInterval(updateClock, 1000);
+
+            gongAudio.currentTime = 0;
+            gongAudio.play().catch(e => console.log("Audio blockiert:", e));
+            
+            jeopardyAudio.currentTime = 0;
+            jeopardyAudio.play().catch(e => console.log("Audio blockiert:", e));
+
+            startTime = Date.now();
+
+            clearInterval(gongInterval);
+            gongInterval = setInterval(() => {
+                gongAudio.currentTime = 0;
+                gongAudio.play();
+            }, 10000);
+
+            clearTimeout(dudeTimeout);
+            clearInterval(dudeInterval);
+
+            dudeTimeout = setTimeout(() => {
+                swapDude();
+                dudeInterval = setInterval(swapDude, 2000);
+            }, 8000);
+        }
+
+        function swapDude() {
+            let nextDudeFile;
+            do {
+                const randomIndex = Math.floor(Math.random() * AVAILABLE_DUDES.length);
+                nextDudeFile = AVAILABLE_DUDES[randomIndex];
+            } while (nextDudeFile === currentDudeFile && AVAILABLE_DUDES.length > 1);
+            
+            currentDudeFile = nextDudeFile;
+            document.getElementById('dude-image').src = nextDudeFile;
+        }
+
+        // --- UI Interaktionen ---
+        function toggleActionMenu() {
+            const menu = document.getElementById('action-menu');
+            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function continueWaiting() {
+            document.getElementById('action-menu').style.display = 'none';
+        }
+
+        function giveUp() {
+            clearInterval(clockInterval);
+            clearInterval(gongInterval);
+            clearInterval(dudeInterval);
+            clearTimeout(dudeTimeout);
+            
+            jeopardyAudio.pause();
+            gongAudio.pause();
+
+            const endTime = Date.now();
+            gameTime = Math.floor((endTime - startTime) / 1000);
+            
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('end-screen').classList.add('active');
+            
+            document.getElementById('final-time').innerText = gameTime;
+            document.getElementById('score-form').style.display = 'flex'; 
+            document.getElementById('player-name').value = ''; 
+            
+            updateLeaderboardUI();
+        }
+
+        function resetToStart() {
+            document.getElementById('end-screen').classList.remove('active');
+            document.getElementById('start-screen').classList.add('active');
+        }
+
+        // --- Leaderboard Logik ---
+        function formatTimeHelper(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function saveScore() {
+            const nameInput = document.getElementById('player-name').value.trim();
+            const name = nameInput !== '' ? nameInput : 'Anonymer Fahrgast';
+            
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('de-DE') + ' ' + now.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'});
+
+            const newEntry = { name: name, time: gameTime, date: dateStr };
+            
+            let leaderboard = JSON.parse(localStorage.getItem('bahnsinn_leaderboard')) || [];
+            
+            leaderboard.push(newEntry);
+            leaderboard.sort((a, b) => b.time - a.time);
+            leaderboard = leaderboard.slice(0, 10);
+            
+            localStorage.setItem('bahnsinn_leaderboard', JSON.stringify(leaderboard));
+            
+            document.getElementById('score-form').style.display = 'none';
+            
+            updateLeaderboardUI();
+        }
+
+        function updateLeaderboardUI() {
+            const leaderboard = JSON.parse(localStorage.getItem('bahnsinn_leaderboard')) || [];
+            const tbody = document.getElementById('leaderboard-body');
+            tbody.innerHTML = '';
+
+            if (leaderboard.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Noch keine Einträge. Sei der Erste!</td></tr>';
+                return;
+            }
+
+            leaderboard.forEach((entry, index) => {
+                const tr = document.createElement('tr');
+                if(entry.time === gameTime && entry.name !== 'Anonymer Fahrgast' && index < 10) {
+                    tr.style.fontWeight = 'bold';
+                    tr.style.color = 'var(--db-rot)';
+                }
+
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${escapeHtml(entry.name)}</td>
+                    <td>${formatTimeHelper(entry.time)}</td>
+                    <td>${entry.date}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return text;
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
