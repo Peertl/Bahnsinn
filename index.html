@@ -354,10 +354,15 @@
         }
 
         function swapDude() {
-            // Wähle einen zufälligen Dude zwischen 2 und 8
+            // NEU: Liste der erlaubten Dudes, ohne 4 und 6. 
+            // So können wir gezielt steuern, welche Bilder geladen werden.
+            const allowedDudes = [2, 3, 5, 7, 8]; 
             let nextDude;
+            
             do {
-                nextDude = Math.floor(Math.random() * 5) + 2; // Ergibt 2, 3, 4, 5, 6, 7, 8
+                // Wähle einen zufälligen Index (0 bis 4) aus unserem Array
+                const randomIndex = Math.floor(Math.random() * allowedDudes.length);
+                nextDude = allowedDudes[randomIndex];
             } while (nextDude === currentDudeIndex); // Verhindert, dass zweimal derselbe hintereinander kommt
             
             currentDudeIndex = nextDude;
