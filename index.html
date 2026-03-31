@@ -3,8 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bahnsinn!</title>
+    <title>Bahnsinn! - Das DB Wartespiel</title>
     <style>
+        /* --- DB Corporate Design Farben --- */
+        :root {
+            --db-rot: #f01414;
+            --db-grau-dunkel: #282d32;
+            --db-grau-hell: #f4f4f4;
+            --weiss: #ffffff;
+            --schwarz: #000000;
+        }
+
         /* --- Allgemeine Styles --- */
         body, html {
             margin: 0;
@@ -12,8 +21,11 @@
             width: 100%;
             height: 100%;
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            overflow: hidden; /* Verhindert Scrollbalken */
+            background-color: var(--db-grau-hell);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .screen {
@@ -34,428 +46,248 @@
         }
 
         button {
-            background-color: #f01414; /* DB Rot */
-            color: white;
+            background-color: var(--db-rot);
+            color: var(--weiss);
             border: none;
             padding: 15px 30px;
             font-size: 1.2rem;
             font-weight: bold;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
             margin-top: 20px;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        button:hover {
+        button:hover:not(:disabled) {
             background-color: #c01010;
+        }
+        
+        button:active:not(:disabled) {
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Style für deaktivierten Button während des Ladens */
+        button:disabled {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+            box-shadow: none;
         }
 
         /* --- Start Screen --- */
         #start-screen {
-            background-color: white;
+            background-color: var(--weiss);
         }
 
         #start-screen img {
-            max-width: 200px;
-            margin-bottom: 20px;
+            max-width: 250px;
+            height: auto;
+            margin-bottom: 30px;
+        }
+
+        #start-screen h1 {
+            font-size: 3rem;
+            color: var(--db-rot);
+            margin: 0 0 10px 0;
         }
 
         .footer {
             position: absolute;
-            bottom: 10px;
+            bottom: 15px;
             font-size: 0.8rem;
-            color: #666;
+            color: #777;
         }
 
-        /* --- Game Screen --- */
+        /* --- GAME SCREEN --- */
         #game-screen {
-            background-image: url('Bahnsteig.png');
-            background-size: cover;
-            background-position: center;
+            background-color: #999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #game-viewfield {
             position: relative;
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            aspect-ratio: 16 / 9;
+            background-image: url('Bahnsteig.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+        
+        @supports not (aspect-ratio: 16/9) {
+            #game-viewfield {
+                height: 100%;
+                width: calc(100vh * (16/9));
+            }
         }
 
-        /* Der Waiting Dude */
-        #dude-container {
-            position: absolute;
-            /* HIER ANPASSEN: Position und Größe des Dudes auf dem Bahnsteig */
-            bottom: 15%; 
-            left: 30%;
-            height: 50%;
-        }
-
-        #dude-image {
-            height: 100%;
-            width: auto;
-        }
-
-        /* Die Bahnuhr */
+        /* --- REALE BAHN-UHR ÜBERLAGERUNG --- */
         #clock-container {
             position: absolute;
-            /* HIER ANPASSEN: Position und Größe der Uhr auf dem Hintergrundbild */
-            top: 12%; 
-            right: 25%;
-            width: 150px;
-            height: 150px;
-            background-color: white;
+            background-color: var(--weiss);
             border-radius: 50%;
-            border: 8px solid #222;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            border: 2px solid #333;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+            
+            /* --- HIER ANPASSEN: Etwas höher gesetzt (vorher 15.5%) --- */
+            top: 12%;    
+            right: 21.8%; 
+            width: 7.5%;  
+            height: auto; 
+            aspect-ratio: 1 / 1; 
+            
+            z-index: 10;
         }
 
-        /* Ziffernblatt-Markierungen (vereinfacht) */
         .clock-mark {
             position: absolute;
-            width: 4px;
-            height: 10px;
-            background: #222;
-            top: 5px;
+            width: 5%;
+            height: 15%;
+            background: #333;
+            top: 2%;
             left: 50%;
             transform: translateX(-50%);
+            transform-origin: 50% 333%;
         }
+        .clock-mark.mh { height: 10%; top: 4%; }
 
         .hand {
             position: absolute;
             bottom: 50%;
             left: 50%;
             transform-origin: bottom center;
-            background-color: black;
+            background-color: var(--schwarz);
             border-radius: 4px;
+            z-index: 5;
         }
 
-        #hour-hand { width: 6px; height: 35%; margin-left: -3px; }
-        #min-hand { width: 4px; height: 45%; margin-left: -2px; }
+        #hour-hand { width: 8%; height: 28%; margin-left: -4%; border-radius: 10px; }
+        #min-hand { width: 5%; height: 42%; margin-left: -2.5%; border-radius: 10px; }
         #sec-hand { 
-            width: 2px; 
-            height: 50%; 
-            margin-left: -1px; 
-            background-color: #f01414; 
+            width: 3%; 
+            height: 48%; 
+            margin-left: -1.5%; 
+            background-color: var(--db-rot); 
+            border-radius: 0;
+            z-index: 6;
         }
 
         .clock-center {
             position: absolute;
             top: 50%; left: 50%;
-            width: 12px; height: 12px;
-            background-color: black;
+            width: 12%; height: 12%;
+            background-color: var(--schwarz);
             border-radius: 50%;
             transform: translate(-50%, -50%);
+            z-index: 10;
         }
 
-        /* UI-Overlay im Spiel */
+        /* --- WAITING DUDE --- */
+        #dude-container {
+            position: absolute;
+            bottom: 18%; 
+            left: 35%;   
+            height: 55%; 
+            display: flex;
+            align-items: flex-end; 
+            z-index: 5;
+        }
+
+        #dude-image {
+            height: 100%; 
+            width: auto;  
+            display: block;
+        }
+
         #game-ui {
             position: absolute;
-            bottom: 20px;
+            bottom: 30px;
             width: 100%;
             display: flex;
             justify-content: center;
+            z-index: 100;
         }
 
         #action-menu {
             display: none;
             position: absolute;
-            bottom: 80px;
-            background: rgba(255, 255, 255, 0.95);
+            bottom: 100px;
+            background: rgba(255, 255, 255, 0.98);
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
+            border: 1px solid #ccc;
         }
 
         #action-menu button {
             margin: 0;
+            width: 200px;
         }
 
         /* --- End Screen --- */
         #end-screen {
-            background-color: white;
-            padding: 20px;
+            background-color: var(--weiss);
+            padding: 40px;
             box-sizing: border-box;
+            overflow-y: auto;
         }
 
         #end-screen h1 {
-            color: #333;
+            color: var(--db-grau-dunkel);
+            font-size: 2.5rem;
+        }
+        
+        #end-screen del {
+            color: #999;
+            text-decoration-color: var(--db-rot);
         }
 
         .leaderboard-container {
-            margin-top: 20px;
+            margin-top: 30px;
             width: 100%;
-            max-width: 500px;
-            background: #f9f9f9;
-            padding: 15px;
+            max-width: 650px;
+            background: var(--db-grau-hell);
+            padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            max-height: 40vh;
-            overflow-y: auto;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .leaderboard-container h2 {
+            color: var(--db-rot);
+            margin-top: 0;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            background-color: var(--weiss);
         }
 
         th, td {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
             text-align: left;
         }
+        
+        th {
+            background-color: var(--db-grau-dunkel);
+            color: var(--weiss);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
 
         #score-form {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #player-name {
-            padding: 10px;
-            font-size: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-    </style>
-</head>
-<body>
-
-    <div id="start-screen" class="screen active">
-        <img src="Deutsche_Bahn_Logo.png" alt="DB Logo">
-        <h1>Bahnsinn!</h1>
-        <p>Starte deine spannende Erfahrung mit der Deutschen Bahn</p>
-        <button onclick="startGame()">Starten</button>
-        <div class="footer">entwickelt von Peertl & Gemini</div>
-    </div>
-
-    <div id="game-screen" class="screen">
-        
-        <div id="clock-container">
-            <div class="clock-mark" style="transform: translateX(-50%) rotate(0deg); transform-origin: 50% 75px;"></div>
-            <div class="clock-mark" style="transform: translateX(-50%) rotate(90deg); transform-origin: 50% 75px;"></div>
-            <div class="clock-mark" style="transform: translateX(-50%) rotate(180deg); transform-origin: 50% 75px;"></div>
-            <div class="clock-mark" style="transform: translateX(-50%) rotate(270deg); transform-origin: 50% 75px;"></div>
-            <div id="hour-hand" class="hand"></div>
-            <div id="min-hand" class="hand"></div>
-            <div id="sec-hand" class="hand"></div>
-            <div class="clock-center"></div>
-        </div>
-
-        <div id="dude-container">
-            <img id="dude-image" src="Waiting-Dude_1.png" alt="Wartender Reisender">
-        </div>
-
-        <div id="game-ui">
-            <button onclick="toggleActionMenu()">Aktion auswählen</button>
-        </div>
-
-        <div id="action-menu">
-            <button onclick="continueWaiting()" style="background-color: #555;">Warten</button>
-            <button onclick="giveUp()">Aufgeben</button>
-        </div>
-    </div>
-
-    <div id="end-screen" class="screen">
-        <h1>Zänk juh for <del>träwweling wis</del> Deutsche Bahn</h1>
-        <p>Du hast unglaubliche <strong id="final-time">0</strong> Sekunden auf deinen Zug gewartet!</p>
-        
-        <div id="score-form">
-            <input type="text" id="player-name" placeholder="Dein Name" maxlength="20">
-            <button onclick="saveScore()" style="margin: 0;">In Bestenliste eintragen</button>
-        </div>
-
-        <div class="leaderboard-container">
-            <h2>Die geduldigsten Fahrgäste</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Platz</th>
-                        <th>Name</th>
-                        <th>Wartezeit</th>
-                        <th>Datum</th>
-                    </tr>
-                </thead>
-                <tbody id="leaderboard-body">
-                    </tbody>
-            </table>
-        </div>
-
-        <button onclick="resetToStart()">Zurück zum Start</button>
-    </div>
-
-    <script>
-        // --- Variablen ---
-        let startTime;
-        let gameTime = 0;
-        let currentDudeIndex = 1;
-        
-        // Intervalle und Timeouts
-        let clockInterval;
-        let gongInterval;
-        let dudeTimeout;
-        let dudeInterval;
-        
-        // Audio Objekte
-        const gongAudio = new Audio('Bahn_Gong.mp3');
-        const jeopardyAudio = new Audio('Jeopardy_Theme.mp3');
-        jeopardyAudio.loop = true;
-
-        // --- Uhr Logik ---
-        function updateClock() {
-            const now = new Date();
-            const sec = now.getSeconds();
-            const min = now.getMinutes();
-            const hour = now.getHours();
-
-            const secDeg = sec * 6;
-            const minDeg = min * 6 + sec * 0.1;
-            const hourDeg = (hour % 12) * 30 + min * 0.5;
-
-            document.getElementById('sec-hand').style.transform = `rotate(${secDeg}deg)`;
-            document.getElementById('min-hand').style.transform = `rotate(${minDeg}deg)`;
-            document.getElementById('hour-hand').style.transform = `rotate(${hourDeg}deg)`;
-        }
-
-        // --- Spielsteuerung ---
-        function startGame() {
-            // Screens wechseln
-            document.getElementById('start-screen').classList.remove('active');
-            document.getElementById('game-screen').classList.add('active');
-            
-            // UI zurücksetzen
-            document.getElementById('action-menu').style.display = 'none';
-            document.getElementById('dude-image').src = 'Waiting-Dude_1.png';
-            currentDudeIndex = 1;
-            
-            // Uhr starten
-            updateClock();
-            clockInterval = setInterval(updateClock, 1000);
-
-            // Audio starten
-            gongAudio.currentTime = 0;
-            gongAudio.play();
-            jeopardyAudio.currentTime = 0;
-            jeopardyAudio.play();
-
-            // Zeitmessung starten
-            startTime = Date.now();
-
-            // Events planen
-            // Gong alle 10 Sekunden
-            gongInterval = setInterval(() => {
-                gongAudio.currentTime = 0;
-                gongAudio.play();
-            }, 18000);
-
-            // Dude Wechsel nach 8 Sekunden (erste Änderung)
-            dudeTimeout = setTimeout(() => {
-                swapDude();
-                // Danach alle 5 Sekunden
-                dudeInterval = setInterval(swapDude, 5000);
-            }, 8000);
-        }
-
-        function swapDude() {
-            // Wähle einen zufälligen Dude zwischen 2 und 8
-            let nextDude;
-            do {
-                nextDude = Math.floor(Math.random() * 5) + 2; // Ergibt 2, 3, 4, 5, 6, 7, 8
-            } while (nextDude === currentDudeIndex); // Verhindert, dass zweimal derselbe hintereinander kommt
-            
-            currentDudeIndex = nextDude;
-            document.getElementById('dude-image').src = `Waiting-Dude_${currentDudeIndex}.png`;
-        }
-
-        // --- UI Interaktionen ---
-        function toggleActionMenu() {
-            const menu = document.getElementById('action-menu');
-            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
-        }
-
-        function continueWaiting() {
-            document.getElementById('action-menu').style.display = 'none';
-        }
-
-        function giveUp() {
-            // Spiel stoppen
-            clearInterval(clockInterval);
-            clearInterval(gongInterval);
-            clearInterval(dudeInterval);
-            clearTimeout(dudeTimeout);
-            
-            jeopardyAudio.pause();
-            gongAudio.pause();
-
-            // Zeit berechnen
-            const endTime = Date.now();
-            gameTime = Math.floor((endTime - startTime) / 1000);
-            
-            // Screens wechseln
-            document.getElementById('game-screen').classList.remove('active');
-            document.getElementById('end-screen').classList.add('active');
-            
-            document.getElementById('final-time').innerText = gameTime;
-            document.getElementById('score-form').style.display = 'flex'; // Formular wieder anzeigen
-            document.getElementById('player-name').value = ''; // Input leeren
-            
-            updateLeaderboardUI();
-        }
-
-        function resetToStart() {
-            document.getElementById('end-screen').classList.remove('active');
-            document.getElementById('start-screen').classList.add('active');
-        }
-
-        // --- Leaderboard Logik ---
-        function formatTime(seconds) {
-            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-            const s = (seconds % 60).toString().padStart(2, '0');
-            return `${m}:${s}`;
-        }
-
-        function saveScore() {
-            const nameInput = document.getElementById('player-name').value.trim();
-            const name = nameInput !== '' ? nameInput : 'Anonymer Reisender';
-            
-            const date = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-            const newEntry = { name: name, time: gameTime, date: date };
-            
-            // Aus LocalStorage laden
-            let leaderboard = JSON.parse(localStorage.getItem('bahnsinn_leaderboard')) || [];
-            
-            // Hinzufügen und sortieren (höchste Zeit zuerst)
-            leaderboard.push(newEntry);
-            leaderboard.sort((a, b) => b.time - a.time);
-            
-            // Wieder speichern
-            localStorage.setItem('bahnsinn_leaderboard', JSON.stringify(leaderboard));
-            
-            // Formular ausblenden, damit man nicht mehrmals klickt
-            document.getElementById('score-form').style.display = 'none';
-            
-            updateLeaderboardUI();
-        }
-
-        function updateLeaderboardUI() {
-            const leaderboard = JSON.parse(localStorage.getItem('bahnsinn_leaderboard')) || [];
-            const tbody = document.getElementById('leaderboard-body');
-            tbody.innerHTML = '';
-
-            if (leaderboard.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Noch keine Einträge vorhanden.</td></tr>';
-                return;
-            }
-
-            leaderboard.forEach((entry, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${entry.name}</td>
-                    <td>${formatTime(entry.time)}</td>
-                    <td>${entry.date}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-    </script>
-</body>
-</html>
+            margin
