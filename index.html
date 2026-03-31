@@ -78,9 +78,9 @@
         /* Der Waiting Dude */
         #dude-container {
             position: absolute;
-            /* HIER ANPASSEN: Position und Größe des Dudes auf dem Bahnsteig */
+            /* HIER ANGEPASST: Von 30% auf 15% geändert, um ihn nach links zu schieben */
             bottom: 15%; 
-            left: 30%;
+            left: 15%;
             height: 50%;
         }
 
@@ -92,7 +92,6 @@
         /* Die Bahnuhr */
         #clock-container {
             position: absolute;
-            /* HIER ANPASSEN: Position und Größe der Uhr auf dem Hintergrundbild */
             top: 8%; 
             right: 25%;
             width: 150px;
@@ -103,7 +102,7 @@
             box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
         }
 
-        /* Ziffernblatt-Markierungen (vereinfacht) */
+        /* Ziffernblatt-Markierungen */
         .clock-mark {
             position: absolute;
             width: 4px;
@@ -287,13 +286,11 @@
         let gameTime = 0;
         let currentDudeIndex = 1;
         
-        // Intervalle und Timeouts
         let clockInterval;
         let gongInterval;
         let dudeTimeout;
         let dudeInterval;
         
-        // Audio Objekte
         const gongAudio = new Audio('Bahn_Gong.mp3');
         const jeopardyAudio = new Audio('Jeopardy_Theme.mp3');
         jeopardyAudio.loop = true;
@@ -316,60 +313,48 @@
 
         // --- Spielsteuerung ---
         function startGame() {
-            // Screens wechseln
             document.getElementById('start-screen').classList.remove('active');
             document.getElementById('game-screen').classList.add('active');
             
-            // UI zurücksetzen
             document.getElementById('action-menu').style.display = 'none';
             document.getElementById('dude-image').src = 'Waiting-Dude_1.png';
             currentDudeIndex = 1;
             
-            // Uhr starten
             updateClock();
             clockInterval = setInterval(updateClock, 1000);
 
-            // Audio starten
             gongAudio.currentTime = 0;
             gongAudio.play();
             jeopardyAudio.currentTime = 0;
             jeopardyAudio.play();
 
-            // Zeitmessung starten
             startTime = Date.now();
 
-            // Events planen
-            // Gong alle 10 Sekunden
             gongInterval = setInterval(() => {
                 gongAudio.currentTime = 0;
                 gongAudio.play();
             }, 18000);
 
-            // Dude Wechsel nach 8 Sekunden (erste Änderung)
             dudeTimeout = setTimeout(() => {
                 swapDude();
-                // Danach alle 5 Sekunden
                 dudeInterval = setInterval(swapDude, 5000);
             }, 8000);
         }
 
         function swapDude() {
-            // NEU: Liste der erlaubten Dudes, ohne 4 und 6. 
-            // So können wir gezielt steuern, welche Bilder geladen werden.
+            // Liste ohne 4 und 6
             const allowedDudes = [2, 3, 5, 7, 8]; 
             let nextDude;
             
             do {
-                // Wähle einen zufälligen Index (0 bis 4) aus unserem Array
                 const randomIndex = Math.floor(Math.random() * allowedDudes.length);
                 nextDude = allowedDudes[randomIndex];
-            } while (nextDude === currentDudeIndex); // Verhindert, dass zweimal derselbe hintereinander kommt
+            } while (nextDude === currentDudeIndex);
             
             currentDudeIndex = nextDude;
             document.getElementById('dude-image').src = `Waiting-Dude_${currentDudeIndex}.png`;
         }
 
-        // --- UI Interaktionen ---
         function toggleActionMenu() {
             const menu = document.getElementById('action-menu');
             menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
@@ -380,7 +365,6 @@
         }
 
         function giveUp() {
-            // Spiel stoppen
             clearInterval(clockInterval);
             clearInterval(gongInterval);
             clearInterval(dudeInterval);
@@ -389,17 +373,15 @@
             jeopardyAudio.pause();
             gongAudio.pause();
 
-            // Zeit berechnen
             const endTime = Date.now();
             gameTime = Math.floor((endTime - startTime) / 1000);
             
-            // Screens wechseln
             document.getElementById('game-screen').classList.remove('active');
             document.getElementById('end-screen').classList.add('active');
             
             document.getElementById('final-time').innerText = gameTime;
-            document.getElementById('score-form').style.display = 'flex'; // Formular wieder anzeigen
-            document.getElementById('player-name').value = ''; // Input leeren
+            document.getElementById('score-form').style.display = 'flex';
+            document.getElementById('player-name').value = '';
             
             updateLeaderboardUI();
         }
@@ -409,7 +391,6 @@
             document.getElementById('start-screen').classList.add('active');
         }
 
-        // --- Leaderboard Logik ---
         function formatTime(seconds) {
             const m = Math.floor(seconds / 60).toString().padStart(2, '0');
             const s = (seconds % 60).toString().padStart(2, '0');
@@ -419,24 +400,16 @@
         function saveScore() {
             const nameInput = document.getElementById('player-name').value.trim();
             const name = nameInput !== '' ? nameInput : 'Anonymer Reisender';
-            
             const date = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
             const newEntry = { name: name, time: gameTime, date: date };
-            
-            // Aus LocalStorage laden
             let leaderboard = JSON.parse(localStorage.getItem('bahnsinn_leaderboard')) || [];
             
-            // Hinzufügen und sortieren (höchste Zeit zuerst)
             leaderboard.push(newEntry);
             leaderboard.sort((a, b) => b.time - a.time);
             
-            // Wieder speichern
             localStorage.setItem('bahnsinn_leaderboard', JSON.stringify(leaderboard));
-            
-            // Formular ausblenden, damit man nicht mehrmals klickt
             document.getElementById('score-form').style.display = 'none';
-            
             updateLeaderboardUI();
         }
 
